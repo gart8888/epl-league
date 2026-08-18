@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EPL Prediction League - Submit Picks</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EPL Prediction League</title>
   <style>
     :root {
       --primary: #38003c;
@@ -11,6 +11,7 @@
       --bg: #f4f4f9;
       --card-bg: #ffffff;
       --text: #242424;
+      --border: #e0e0e0;
     }
 
     body {
@@ -19,392 +20,224 @@
       color: var(--text);
       margin: 0;
       padding: 20px;
-      display: flex;
-      justify-content: center;
     }
 
     .container {
-      max-width: 500px;
-      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
       background: var(--card-bg);
-      padding: 25px;
+      padding: 30px;
       border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+
+    header {
+      text-align: center;
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 20px;
+      margin-bottom: 25px;
     }
 
     h1 {
       color: var(--primary);
-      text-align: center;
-      margin-top: 0;
-      font-size: 1.6rem;
+      margin: 0 0 10px 0;
+      font-size: 28px;
     }
 
-    p.subtitle {
-      text-align: center;
-      font-size: 0.9rem;
-      color: #666;
-      margin-bottom: 20px;
-    }
-
-    /* Rules & Scoring Accordion */
-    .scoring-box {
-      background: #f8f0fc;
-      border: 1px solid #e1bee7;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      overflow: hidden;
-    }
-
-    .scoring-header {
-      background: var(--primary);
-      color: #ffffff;
-      padding: 12px 15px;
-      font-weight: bold;
-      font-size: 0.95rem;
-      cursor: pointer;
+    .nav-tabs {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      gap: 10px;
+      margin-bottom: 25px;
     }
 
-    .scoring-content {
-      padding: 15px;
-      font-size: 0.85rem;
-      line-height: 1.5;
-      color: #333;
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      border-radius: 6px;
+      transition: all 0.2s ease;
     }
 
-    .scoring-content ul {
-      margin: 8px 0 0 0;
+    .tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Rules Styling */
+    .rules-card {
+      background: #f9f9fc;
+      border-left: 4px solid var(--primary);
+      padding: 15px 20px;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 25px;
+    }
+
+    .rules-card h3 {
+      margin-top: 0;
+      color: var(--primary);
+    }
+
+    .rules-card ul {
+      margin: 0;
       padding-left: 20px;
     }
 
-    .scoring-content li {
-      margin-bottom: 6px;
+    .rules-card li {
+      margin-bottom: 8px;
+      line-height: 1.4;
     }
 
-    .form-group {
-      margin-bottom: 15px;
-    }
-
-    label {
-      display: block;
-      font-weight: bold;
-      margin-bottom: 5px;
-      font-size: 0.9rem;
-    }
-
-    input[type="text"], input[type="password"] {
+    /* Standings Table */
+    table {
       width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
-      font-size: 1rem;
+      border-collapse: collapse;
+      margin-top: 15px;
     }
 
-    .instructions {
-      font-size: 0.85rem;
-      background: #eef2f5;
-      padding: 10px;
-      border-radius: 6px;
-      margin-bottom: 15px;
-      color: #444;
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
     }
 
-    #teamList {
-      list-style-type: none;
-      padding: 0;
-      margin: 0 0 20px 0;
-    }
-
-    #teamList li {
-      background: #fff;
-      border: 1px solid #e0e0e0;
-      padding: 10px 12px;
-      margin-bottom: 6px;
-      border-radius: 6px;
-      cursor: grab;
-      display: flex;
-      align-items: center;
-      font-weight: 500;
-      transition: background-color 0.2s, box-shadow 0.2s;
-      user-select: none;
-    }
-
-    #teamList li:active {
-      cursor: grabbing;
-    }
-
-    #teamList li.dragging {
-      opacity: 0.5;
-      background: #e8f5e9;
-    }
-
-    .rank-num {
-      width: 28px;
-      height: 28px;
-      background: var(--primary);
-      color: #fff;
-      border-radius: 50%;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.85rem;
-      font-weight: bold;
-      margin-right: 12px;
-      flex-shrink: 0;
-    }
-
-    button[type="submit"] {
-      width: 100%;
+    th {
       background-color: var(--primary);
       color: white;
-      border: none;
-      padding: 12px;
-      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+
+    tr {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .rank-col {
+      width: 60px;
       font-weight: bold;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-
-    button[type="submit"]:hover {
-      background-color: #520058;
-    }
-
-    button[type="submit"]:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
-
-    #cutoffBanner {
-      display: none;
-      background-color: #f8d7da;
-      color: #721c24;
-      padding: 10px;
-      border-radius: 6px;
       text-align: center;
+    }
+
+    .points-col {
+      text-align: right;
       font-weight: bold;
-      margin-bottom: 15px;
-      border: 1px solid #f5c6cb;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
     }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h1>EPL Predictions</h1>
-    <p class="subtitle">Drag & drop teams to rank them 1 to 20</p>
+    <header>
+      <h1>Premier League Prediction League</h1>
+    </header>
 
-    <!-- Scoring Rules Panel -->
-    <details class="scoring-box" open>
-      <summary class="scoring-header">
-        <span>⚽ How Scoring Works</span>
-      </summary>
-      <div class="scoring-content">
-        <p style="margin-top:0;"><strong>Goal:</strong> Get the <em>lowest score possible</em> (Golf rules!).</p>
-        <ul>
-          <li><strong>Position Difference:</strong> For each team, your score increases by the absolute difference between where you predicted them to finish and where they currently sit in the live Premier League table.</li>
-          <li><em>Example:</em> If you predict Arsenal to finish <strong>1st</strong> and they are currently <strong>3rd</strong>, you receive <strong>|1 - 3| = 2 points</strong> for that team.</li>
-          <li><strong>Total Score:</strong> The sum of error points across all 20 teams. A perfect prediction across the entire table earns 0 points!</li>
-          <li><strong>Tiebreaker:</strong> If two players have identical total points, the player whose <strong>1st Place (Champion) pick</strong> is closest to their actual live table position wins the tiebreaker.</li>
-        </ul>
-      </div>
-    </details>
-
-    <div id="cutoffBanner">
-      🔒 Submissions are officially closed for the season!
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('standings')">Standings</button>
+      <button class="tab-btn" onclick="switchTab('rules')">Rules & Scoring</button>
     </div>
 
-    <form id="predictionForm" onsubmit="event.preventDefault(); submitPredictions();">
-      <div class="form-group">
-        <label for="playerName">Your Name / Username:</label>
-        <input type="text" id="playerName" placeholder="Enter your full name" required>
+    <!-- Standings View -->
+    <div id="standings" class="tab-content active">
+      <table id="standings-table">
+        <thead>
+          <tr>
+            <th class="rank-col">Rank</th>
+            <th>Player Name</th>
+            <th class="points-col">Points</th>
+          </tr>
+        </thead>
+        <tbody id="standings-body">
+          <tr>
+            <td colspan="3" class="loading">Loading standings...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Rules View -->
+    <div id="rules" class="tab-content">
+      <div class="rules-card">
+        <h3>Rules & Scoring System</h3>
+        <ul>
+          <li><strong>Goal:</strong> Predict the final 1 to 20 standings of the Premier League table.</li>
+          <li><strong>Scoring (Golf Rules):</strong> Points are awarded based on absolute position difference. For example, if you predict a team to finish 1st and they finish 5th, you receive <strong>4 points</strong> ($|1 - 5| = 4$).</li>
+          <li><strong>Lowest Score Wins:</strong> The player with the fewest total points across all 20 teams leads the standings.</li>
+          <li><strong>Tie-Breaking Logic:</strong> If two or more players are tied on total points, ties are broken automatically behind the scenes:
+            <ul>
+              <li>The system first compares absolute error on 1st choice picks.</li>
+              <li>If still tied, it steps sequentially through 2nd, 3rd, 4th choice picks down through all 20 positions until the tie is broken.</li>
+            </ul>
+          </li>
+        </ul>
       </div>
-
-      <div class="form-group">
-        <label for="leaguePassword">League Password:</label>
-        <input type="password" id="leaguePassword" placeholder="Enter password" required>
-      </div>
-
-      <div class="instructions">
-        💡 <strong>How to rank:</strong> Click and drag any team up or down to adjust your predicted order. #1 is Champion, #20 is Relegated.
-      </div>
-
-      <ul id="teamList"></ul>
-
-      <button type="submit" id="submitBtn">Submit Predictions</button>
-    </form>
+    </div>
   </div>
 
   <script>
-    // Configuration Variables
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxXPa3hnjxvnGREK_7mTZfjtC5brUFSFhKKAumzj5L0BY79Pkjt4TcyXQF1maNScIipug/exec";
-    const LEAGUE_PASSWORD = "EPL2026";
-    const KICKOFF_TIME = new Date("2026-08-15T11:30:00Z");
 
-    // 1. Exact 20 Premier League Teams
-    const defaultTeams = [
-      "AFC Bournemouth",
-      "Arsenal FC",
-      "Aston Villa FC",
-      "Brentford FC",
-      "Brighton & Hove Albion FC",
-      "Chelsea FC",
-      "Coventry City FC",
-      "Crystal Palace FC",
-      "Everton FC",
-      "Fulham FC",
-      "Hull City AFC",
-      "Ipswich Town FC",
-      "Leeds United FC",
-      "Liverpool FC",
-      "Manchester City FC",
-      "Manchester United FC",
-      "Newcastle United FC",
-      "Nottingham Forest FC",
-      "Sunderland AFC",
-      "Tottenham Hotspur FC"
-    ];
-
-    // Initialize list and drag events
-    document.addEventListener("DOMContentLoaded", () => {
-      renderTeamList();
-      checkKickoffCutoff();
-    });
-
-    function renderTeamList() {
-      const list = document.getElementById("teamList");
-      list.innerHTML = "";
-
-      defaultTeams.forEach((teamName, index) => {
-        const li = document.createElement("li");
-        li.draggable = true;
-        li.innerHTML = `<span class="rank-num">${index + 1}</span><span class="team-name">${teamName}</span>`;
-        
-        addDragEvents(li);
-        list.appendChild(li);
-      });
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById(tabId).classList.add('active');
+      event.currentTarget.classList.add('active');
     }
 
-    function updateRankNumbers() {
-      const items = document.querySelectorAll("#teamList li");
-      items.forEach((li, idx) => {
-        li.querySelector(".rank-num").innerText = idx + 1;
-      });
-    }
-
-    // Drag and Drop Logic
-    let draggedItem = null;
-
-    function addDragEvents(item) {
-      item.addEventListener("dragstart", (e) => {
-        draggedItem = item;
-        setTimeout(() => item.classList.add("dragging"), 0);
-      });
-
-      item.addEventListener("dragend", () => {
-        draggedItem.classList.remove("dragging");
-        draggedItem = null;
-        updateRankNumbers();
-      });
-
-      item.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        const list = document.getElementById("teamList");
-        const afterElement = getDragAfterElement(list, e.clientY);
-        if (afterElement == null) {
-          list.appendChild(draggedItem);
-        } else {
-          list.insertBefore(draggedItem, afterElement);
-        }
-      });
-    }
-
-    function getDragAfterElement(container, y) {
-      const draggableElements = [...container.querySelectorAll("#teamList li:not(.dragging)")];
-
-      return draggableElements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const offset = y - box.top - box.height / 2;
-        if (offset < 0 && offset > closest.offset) {
-          return { offset: offset, element: child };
-        } else {
-          return closest;
-        }
-      }, { offset: Number.NEGATIVE_INFINITY }).element;
-    }
-
-    // Check cutoff time
-    function checkKickoffCutoff() {
-      const now = new Date();
-      const submitBtn = document.getElementById("submitBtn");
-      const cutoffBanner = document.getElementById("cutoffBanner");
-
-      if (now >= KICKOFF_TIME) {
-        if (submitBtn) {
-          submitBtn.disabled = true;
-          submitBtn.innerText = "Submissions Closed";
-        }
-        if (cutoffBanner) {
-          cutoffBanner.style.display = "block";
-        }
-      }
-    }
-
-    // Form Submission
-    async function submitPredictions() {
-      const playerNameInput = document.getElementById("playerName");
-      const passwordInput = document.getElementById("leaguePassword");
-      const submitBtn = document.getElementById("submitBtn");
-
-      const playerName = playerNameInput ? playerNameInput.value.trim() : "";
-      const password = passwordInput ? passwordInput.value.trim() : "";
-
-      if (!playerName) {
-        alert("Please enter your name.");
-        return;
-      }
-
-      if (password !== LEAGUE_PASSWORD) {
-        alert("Incorrect league password!");
-        return;
-      }
-
-      const teamElements = document.querySelectorAll("#teamList .team-name");
-      const predictions = Array.from(teamElements).map(el => el.innerText.trim());
-
-      if (predictions.length !== 20) {
-        alert("Error: All 20 teams must be present.");
-        return;
-      }
-
-      submitBtn.disabled = true;
-      submitBtn.innerText = "Submitting...";
-
+    async function fetchStandings() {
+      const tbody = document.getElementById('standings-body');
       try {
-        await fetch(SCRIPT_URL, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "text/plain" },
-          body: JSON.stringify({
-            playerName: playerName,
-            submissionType: "Pre-Season",
-            predictions: predictions
-          })
-        });
+        const response = await fetch(SCRIPT_URL);
+        const data = await response.json();
 
-        alert("Predictions submitted successfully!");
-        window.location.reload();
+        if (!data || data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3" class="loading">No standings data available yet.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data.map(player => `
+          <tr>
+            <td class="rank-col">${player.rank}</td>
+            <td>${escapeHtml(player.name)}</td>
+            <td class="points-col">${player.points}</td>
+          </tr>
+        `).join('');
 
       } catch (err) {
-        console.error("Submission error:", err);
-        alert("An error occurred during submission. Please try again.");
-        submitBtn.disabled = false;
-        submitBtn.innerText = "Submit Predictions";
+        console.error("Error fetching standings:", err);
+        tbody.innerHTML = '<tr><td colspan="3" class="loading">Unable to load standings. Please try again later.</td></tr>';
       }
     }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    // Initial Load
+    fetchStandings();
   </script>
 </body>
 </html>
