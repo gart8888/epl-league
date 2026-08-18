@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EPL Table Prediction League</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+  <style>
+    :root {
+      --primary: #38003c;
+      --accent: #00ff85;
+      --bg: #f4f4f9;
+      --card-bg: #ffffff;
+      --text: #242424;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      max-width: 500px;
+      width: 100%;
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    h1 {
+      color: var(--primary);
+      margin-top: 0;
+      text-align: center;
+      font-size: 24px;
+    }
+    p.subtitle {
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+    .instructions {
+      background: #eef9f5;
+      border-left: 4px solid var(--accent);
+      padding: 10px 12px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      border-radius: 4px;
+    }
+    #team-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 24px 0;
+    }
+    .team-item {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      margin-bottom: 8px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: grab;
+      user-select: none;
+      transition: background 0.2s;
+    }
+    .team-item:active {
+      cursor: grabbing;
+      background: #f0f0f0;
+    }
+    .rank-number {
+      font-weight: bold;
+      width: 30px;
+      color: var(--primary);
+      font-size: 16px;
+    }
+    .team-name {
+      flex-grow: 1;
+      font-weight: 500;
+    }
+    .drag-handle {
+      color: #aaa;
+      font-size: 18px;
+    }
+    button {
+      width: 100%;
+      background: var(--primary);
+      color: var(--accent);
+      border: none;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    #status-msg {
+      margin-top: 16px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>EPL Table Predictor</h1>
+  <p class="subtitle">Drag & drop teams into your predicted 1–20 final standings.</p>
+
+  <form id="prediction-form">
+    <div class="form-group">
+      <label for="playerName">Your Name / Identifier:</label>
+      <input type="text" id="playerName" placeholder="e.g. Alex M." required />
+    </div>
+
+    <div class="form-group">
+      <label for="leaguePassword">League Password:</label>
+      <input type="password" id="leaguePassword" placeholder="Enter password" required />
+    </div>
+
+    <div class="form-group">
+      <label for="submissionType">Submission Round:</label>
+      <select id="submissionType" required>
+        <option value="Pre-Season">Pre-Season</option>
+        <option value="Mid-Season">Mid-Season</option>
+      </select>
+    </div>
+
+    <div class="instructions">
+      💡 <strong>Tip:</strong> Click/tap and drag any team up or down to adjust your predicted ranking from 1st to 20th position.
+    </div>
+
+    <ul id="team-list"></ul>
+
+    <button type="submit" id="submit-btn">Submit Predictions</button>
+  </form>
+
+  <div id="status-msg"></div>
+</div>
+
+<script>
+  // ==================== CONFIGURATION ====================
+  // Replace with your Google Apps Script Web App URL from Step 2:
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxXPa3hnjxvnGREK_7mTZfjtC5brUFSFhKKAumzj5L0BY79Pkjt4TcyXQF1maNScIipug/exec";
+  
+  // Set the password required for your league members:
+  const LEAGUE_PASSWORD = "EPL2026";
+  // =======================================================
+
+  const defaultTeams = [
+    "Arsenal", "Aston Villa", "Bournemouth", "Brentford", "Brighton & Hove Albion",
+    "Chelsea", "Crystal Palace", "Everton", "Fulham", "Ipswich Town",
+    "Leicester City", "Liverpool", "Manchester City", "Manchester United", "Newcastle United",
+    "Nottingham Forest", "Southampton", "Tottenham Hotspur", "West Ham United", "Wolverhampton Wanderers"
+  ];
+
+  const teamListEl = document.getElementById("team-list");
+
+  function renderTeams() {
+    teamListEl.innerHTML = "";
+    defaultTeams.forEach((team, index) => {
+      const li = document.createElement("li");
+      li.className = "team-item";
+      li.dataset.name = team;
+      li.innerHTML = `
+        <span class="rank-number">${index + 1}</span>
+        <span class="team-name">${team}</span>
+        <span class="drag-handle">☰</span>
+      `;
+      teamListEl.appendChild(li);
+    });
+  }
+
+  function updateRankNumbers() {
+    const items = teamListEl.querySelectorAll(".team-item");
+    items.forEach((item, index) => {
+      item.querySelector(".rank-number").textContent = index + 1;
+    });
+  }
+
+  renderTeams();
+
+  new Sortable(teamListEl, {
+    animation: 150,
+    handle: ".team-item",
+    onEnd: updateRankNumbers
+  });
+
+  document.getElementById("prediction-form").addEventListener("submit", function(e) {
+    e.preventDefault();
+    
+    const statusMsg = document.getElementById("status-msg");
+    const submitBtn = document.getElementById("submit-btn");
+    
+    const playerName = document.getElementById("playerName").value.trim();
+    const enteredPassword = document.getElementById("leaguePassword").value.trim();
+    const submissionType = document.getElementById("submissionType").value;
+
+    if (enteredPassword !== LEAGUE_PASSWORD) {
+      statusMsg.style.color = "#d9534f";
+      statusMsg.textContent = "Incorrect League Password. Please try again.";
+      return;
+    }
+
+    const predictedTeams = Array.from(teamListEl.querySelectorAll(".team-item"))
+      .map(item => item.dataset.name);
+
+    submitBtn.disabled = true;
+    statusMsg.style.color = "#000";
+    statusMsg.textContent = "Submitting your table...";
+
+    fetch(SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        playerName: playerName,
+        submissionType: submissionType,
+        predictions: predictedTeams
+      })
+    })
+    .then(() => {
+      statusMsg.style.color = "#28a745";
+      statusMsg.textContent = "Success! Your predictions have been recorded.";
+      submitBtn.disabled = false;
+    })
+    .catch(err => {
+      statusMsg.style.color = "#d9534f";
+      statusMsg.textContent = "An error occurred during submission. Please try again.";
+      submitBtn.disabled = false;
+    });
+  });
+</script>
+
+</body>
+</html>
