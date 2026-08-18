@@ -2,145 +2,197 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EPL Predictor - Live Standings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EPL Prediction League Standings</title>
   <style>
     :root {
       --primary: #38003c;
       --accent: #00ff85;
       --bg: #f4f4f9;
-      --card: #ffffff;
+      --card-bg: #ffffff;
       --text: #242424;
+      --border: #e0e0e0;
     }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background-color: var(--bg);
       color: var(--text);
       margin: 0;
-      padding: 16px;
-      display: flex;
-      justify-content: center;
+      padding: 20px;
     }
+
     .container {
-      max-width: 500px;
-      width: 100%;
-      background: var(--card);
-      padding: 24px;
+      max-width: 700px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 30px;
       border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     }
+
+    header {
+      text-align: center;
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 20px;
+      margin-bottom: 25px;
+    }
+
     h1 {
       color: var(--primary);
-      text-align: center;
-      margin-top: 0;
-      font-size: 24px;
+      margin: 0 0 8px 0;
+      font-size: 26px;
     }
+
     p.subtitle {
-      text-align: center;
       color: #666;
-      font-size: 13px;
-      margin-bottom: 20px;
+      margin: 0;
+      font-size: 14px;
     }
-    .refresh-info {
-      background: #eef9f5;
-      border-left: 4px solid var(--accent);
-      padding: 10px 12px;
-      font-size: 12px;
-      margin-bottom: 20px;
-      border-radius: 4px;
+
+    /* Rules & Scoring Card */
+    .rules-card {
+      background: #f9f9fc;
+      border-left: 4px solid var(--primary);
+      padding: 15px 20px;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 25px;
     }
+
+    .rules-card h3 {
+      margin-top: 0;
+      color: var(--primary);
+      font-size: 16px;
+    }
+
+    .rules-card ul {
+      margin: 0;
+      padding-left: 20px;
+      font-size: 14px;
+    }
+
+    .rules-card li {
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    /* Standings Table */
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
+      margin-top: 15px;
     }
+
     th, td {
+      padding: 12px 16px;
       text-align: left;
-      padding: 12px 10px;
-      border-bottom: 1px solid #eee;
-      font-size: 14px;
     }
+
     th {
-      background: var(--primary);
-      color: #fff;
+      background-color: var(--primary);
+      color: white;
       font-weight: 600;
     }
-    th:first-child { border-top-left-radius: 6px; }
-    th:last-child { border-top-right-radius: 6px; }
+
     tr:nth-child(even) {
-      background-color: #fafafa;
+      background-color: #f8f9fa;
     }
+
+    tr {
+      border-bottom: 1px solid var(--border);
+    }
+
     .rank-col {
+      width: 70px;
       font-weight: bold;
-      color: var(--primary);
-      width: 30px;
+      text-align: center;
     }
-    .pts-col {
+
+    .points-col {
+      text-align: right;
       font-weight: bold;
+      width: 120px;
     }
-    .tiebreak-col {
+
+    .loading {
+      text-align: center;
+      padding: 20px;
       color: #666;
-      font-size: 13px;
     }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <h1>League Standings</h1>
-  <p class="subtitle">EPL Table Prediction League</p>
+  <div class="container">
+    <header>
+      <h1>EPL Prediction League Standings</h1>
+      <p class="subtitle">Live League Leaderboard</p>
+    </header>
 
-  <div class="refresh-info">
-    ⚡ <strong>Live Updates:</strong> Scores calculate automatically every hour. Lower point total = better standing.
+    <div class="rules-card">
+      <h3>Scoring & Tie-Breaker Info</h3>
+      <ul>
+        <li><strong>Golf-Style Scoring:</strong> The lowest total score wins! Points represent how far off a prediction is for each team. For example, predicting a team to finish 2nd when they actually finish 7th results in 5 penalty points. Perfect predictions earn 0 points.</li>
+        <li><strong>Sequential Tie-Breakers:</strong> If two or more players end up tied on total points, ties are broken automatically behind the scenes:
+          <br>&bull; The player with the more accurate 1st place prediction takes the higher position.
+          <br>&bull; If those are identical, the system compares 2nd place prediction accuracy, then 3rd place, sequentially down through 20th place.</li>
+      </ul>
+    </div>
+
+    <table id="standings-table">
+      <thead>
+        <tr>
+          <th class="rank-col">Rank</th>
+          <th>Player Name</th>
+          <th class="points-col">Total Points</th>
+        </tr>
+      </thead>
+      <tbody id="standings-body">
+        <tr>
+          <td colspan="3" class="loading">Loading standings...</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Player</th>
-        <th>Points</th>
-        <th>1st Diff</th>
-      </tr>
-    </thead>
-    <tbody id="leaderboard-body">
-      <tr>
-        <td colspan="4" style="text-align:center;">Loading live standings...</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxXPa3hnjxvnGREK_7mTZfjtC5brUFSFhKKAumzj5L0BY79Pkjt4TcyXQF1maNScIipug/exec";
 
-<script>
-  // Replace with your Google Apps Script Web App URL:
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxXPa3hnjxvnGREK_7mTZfjtC5brUFSFhKKAumzj5L0BY79Pkjt4TcyXQF1maNScIipug/exec";
+    async function fetchStandings() {
+      const tbody = document.getElementById('standings-body');
+      try {
+        const response = await fetch(SCRIPT_URL);
+        const data = await response.json();
 
-  function fetchStandings() {
-    fetch(SCRIPT_URL)
-      .then(res => res.json())
-      .then(data => {
-        const tbody = document.getElementById('leaderboard-body');
         if (!data || data.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No predictions recorded yet.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="3" class="loading">No standings data available yet.</td></tr>';
           return;
         }
-        tbody.innerHTML = data.map(p => `
+
+        tbody.innerHTML = data.map(player => `
           <tr>
-            <td class="rank-col">${p.rank}</td>
-            <td><strong>${p.name}</strong></td>
-            <td class="pts-col">${p.points}</td>
-            <td class="tiebreak-col">${p.champPts}</td>
+            <td class="rank-col">${player.rank}</td>
+            <td>${escapeHtml(player.name)}</td>
+            <td class="points-col">${player.points}</td>
           </tr>
         `).join('');
-      })
-      .catch(() => {
-        document.getElementById('leaderboard-body').innerHTML = 
-          '<tr><td colspan="4" style="text-align:center; color:red;">Error loading standings.</td></tr>';
-      });
-  }
 
-  fetchStandings();
-</script>
+      } catch (err) {
+        console.error("Error fetching standings:", err);
+        tbody.innerHTML = '<tr><td colspan="3" class="loading">Unable to load standings. Please try again later.</td></tr>';
+      }
+    }
 
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    // Initial Load
+    fetchStandings();
+  </script>
 </body>
 </html>
