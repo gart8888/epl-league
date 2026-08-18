@@ -248,7 +248,7 @@ const defaultTeams = [
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         playerName: playerName,
-        submissionType: submissionType,
+        submissionType: "Pre-Season", // Fixed round label
         predictions: predictedTeams
       })
     })
