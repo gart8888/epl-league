@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EPL Season Predictions Submit</title>
+  
+  <!-- SortableJS for seamless Mobile & Desktop Drag-and-Drop -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+
   <style>
     :root {
       --primary: #38003c;
@@ -20,14 +24,14 @@
       background-color: var(--bg);
       color: var(--text);
       margin: 0;
-      padding: 20px;
+      padding: 15px;
     }
 
     .container {
       max-width: 600px;
       margin: 0 auto;
       background: var(--card-bg);
-      padding: 30px;
+      padding: 25px;
       border-radius: 12px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     }
@@ -35,14 +39,14 @@
     header {
       text-align: center;
       border-bottom: 2px solid var(--primary);
-      padding-bottom: 20px;
-      margin-bottom: 25px;
+      padding-bottom: 15px;
+      margin-bottom: 20px;
     }
 
     h1 {
       color: var(--primary);
       margin: 0 0 8px 0;
-      font-size: 26px;
+      font-size: 24px;
     }
 
     p.subtitle {
@@ -64,10 +68,10 @@
 
     input[type="text"] {
       width: 100%;
-      padding: 10px 12px;
+      padding: 12px;
       border: 1px solid var(--border);
       border-radius: 6px;
-      font-size: 15px;
+      font-size: 16px; /* 16px prevents iOS auto-zoom on focus */
       box-sizing: border-box;
     }
 
@@ -75,9 +79,9 @@
     .rules-card {
       background: #f9f9fc;
       border-left: 4px solid var(--primary);
-      padding: 15px 20px;
+      padding: 15px 18px;
       border-radius: 0 8px 8px 0;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
     }
 
     .rules-card h3 {
@@ -88,16 +92,16 @@
 
     .rules-card ul {
       margin: 0;
-      padding-left: 20px;
+      padding-left: 18px;
       font-size: 14px;
     }
 
     .rules-card li {
-      margin-bottom: 10px;
-      line-height: 1.5;
+      margin-bottom: 8px;
+      line-height: 1.4;
     }
 
-    /* Team Drag & Drop List */
+    /* Team List */
     .team-list {
       list-style: none;
       padding: 0;
@@ -107,39 +111,45 @@
     .team-item {
       display: flex;
       align-items: center;
-      padding: 10px 14px;
+      padding: 12px 14px;
       background: #fff;
       border: 1px solid var(--border);
       border-radius: 6px;
       margin-bottom: 8px;
       cursor: grab;
       user-select: none;
-      transition: background 0.15s ease, box-shadow 0.15s ease;
+      -webkit-user-select: none;
+      touch-action: manipulation;
     }
 
-    .team-item:active {
-      cursor: grabbing;
-    }
-
-    .team-item.dragging {
-      opacity: 0.5;
+    .team-item.sortable-ghost {
+      opacity: 0.3;
       background: #eef;
     }
 
+    .team-item.sortable-drag {
+      background: #ffffff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
     .rank-number {
-      width: 30px;
+      width: 32px;
       font-weight: bold;
       color: var(--primary);
+      font-size: 15px;
     }
 
     .team-name {
       flex: 1;
       font-weight: 500;
+      font-size: 15px;
     }
 
     .drag-handle {
       color: #aaa;
-      font-size: 18px;
+      font-size: 20px;
+      padding: 0 4px;
+      touch-action: none; /* Helps mobile touch dragging */
     }
 
     button.submit-btn {
@@ -147,7 +157,7 @@
       background: var(--primary);
       color: #fff;
       border: none;
-      padding: 14px;
+      padding: 15px;
       border-radius: 6px;
       font-size: 16px;
       font-weight: 600;
@@ -200,10 +210,8 @@
       <h3>Rules & Scoring</h3>
       <ul>
         <li><strong>Goal:</strong> Drag and drop the 20 Premier League teams into the exact order you think they will finish at the end of the season.</li>
-        <li><strong>Golf-Style Scoring:</strong> Just like golf, the lowest total score wins! You earn points based on how far off your prediction is for every team. For example, if you predict a team to finish 2nd, but they actually end up finishing 7th, you receive 5 penalty points for that pick. Spot-on predictions earn 0 points.</li>
-        <li><strong>Sequential Tie-Breakers:</strong> If two or more players end up tied on total points, the system automatically breaks the tie by looking at individual picks in order:
-          <br>&bull; The player with the more accurate 1st place prediction gets the higher rank.
-          <br>&bull; If those are identical, it compares accuracy on 2nd place predictions, then 3rd place, and so on all the way down through 20th place.</li>
+        <li><strong>Golf-Style Scoring:</strong> Lowest total score wins! Points represent how far off your prediction is for every team. For example, predicting a team to finish 2nd when they actually finish 7th earns 5 penalty points. Spot-on predictions earn 0 points.</li>
+        <li><strong>Sequential Tie-Breakers:</strong> Ties are broken automatically behind the scenes by comparing 1st place prediction accuracy, then 2nd place, down through 20th place.</li>
       </ul>
     </div>
 
@@ -253,13 +261,12 @@
 
     const teamListEl = document.getElementById('team-list');
 
-    // Build initial team list
+    // Build team list
     function initTeamList() {
       teamListEl.innerHTML = '';
       DEFAULT_TEAMS.forEach((team, idx) => {
         const li = document.createElement('li');
         li.className = 'team-item';
-        li.draggable = true;
         li.innerHTML = `
           <span class="rank-number">${idx + 1}</span>
           <span class="team-name">${team}</span>
@@ -267,7 +274,15 @@
         `;
         teamListEl.appendChild(li);
       });
-      addDragListeners();
+
+      // Initialize SortableJS for Mobile & Desktop
+      Sortable.create(teamListEl, {
+        animation: 150,
+        handle: '.team-item', // Allow dragging anywhere on the team card
+        ghostClass: 'sortable-ghost',
+        dragClass: 'sortable-drag',
+        onEnd: updateRanks
+      });
     }
 
     function updateRanks() {
@@ -277,51 +292,7 @@
       });
     }
 
-    // Drag and Drop Logic
-    let draggedItem = null;
-
-    function addDragListeners() {
-      const items = teamListEl.querySelectorAll('.team-item');
-
-      items.forEach(item => {
-        item.addEventListener('dragstart', (e) => {
-          draggedItem = item;
-          setTimeout(() => item.classList.add('dragging'), 0);
-        });
-
-        item.addEventListener('dragend', () => {
-          draggedItem.classList.remove('dragging');
-          draggedItem = null;
-          updateRanks();
-        });
-
-        item.addEventListener('dragover', (e) => {
-          e.preventDefault();
-          const afterElement = getDragAfterElement(teamListEl, e.clientY);
-          if (afterElement == null) {
-            teamListEl.appendChild(draggedItem);
-          } else {
-            teamListEl.insertBefore(draggedItem, afterElement);
-          }
-        });
-      });
-    }
-
-    function getDragAfterElement(container, y) {
-      const draggableElements = [...container.querySelectorAll('.team-item:not(.dragging)')];
-
-      return draggableElements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const offset = y - box.top - box.height / 2;
-        if (offset < 0 && offset > closest.offset) {
-          return { offset: offset, element: child };
-        } else {
-          return closest;
-        }
-      }, { offset: Number.NEGATIVE_INFINITY }).element;
-    }
-
-    // Form Submission
+    // Form Submission with 20-Team Guard
     document.getElementById('prediction-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       
@@ -330,6 +301,12 @@
       const playerName = document.getElementById('playerName').value.trim();
 
       const predictedTeams = [...teamListEl.querySelectorAll('.team-name')].map(el => el.textContent);
+
+      if (predictedTeams.length !== 20) {
+        statusMsg.className = 'status-msg error';
+        statusMsg.textContent = `Submission must contain exactly 20 teams (found ${predictedTeams.length}). Please refresh and try again.`;
+        return;
+      }
 
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting...';
