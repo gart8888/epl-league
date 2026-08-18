@@ -23,7 +23,7 @@
     }
 
     .container {
-      max-width: 700px;
+      max-width: 750px;
       margin: 0 auto;
       background: var(--card-bg);
       padding: 30px;
@@ -50,7 +50,6 @@
       font-size: 14px;
     }
 
-    /* Rules & Scoring Card */
     .rules-card {
       background: #f9f9fc;
       border-left: 4px solid var(--primary);
@@ -72,38 +71,39 @@
     }
 
     .rules-card li {
-      margin-bottom: 10px;
-      line-height: 1.5;
+      margin-bottom: 8px;
+      line-height: 1.4;
     }
 
-    /* Standings Table */
-    table {
+    table.standings-table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 15px;
     }
 
-    th, td {
+    table.standings-table th, table.standings-table td {
       padding: 12px 16px;
       text-align: left;
     }
 
-    th {
+    table.standings-table th {
       background-color: var(--primary);
       color: white;
       font-weight: 600;
     }
 
-    tr:nth-child(even) {
-      background-color: #f8f9fa;
+    .player-row {
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s ease;
     }
 
-    tr {
-      border-bottom: 1px solid var(--border);
+    .player-row:hover {
+      background-color: #f0f0f5;
     }
 
     .rank-col {
-      width: 70px;
+      width: 60px;
       font-weight: bold;
       text-align: center;
     }
@@ -111,8 +111,67 @@
     .points-col {
       text-align: right;
       font-weight: bold;
-      width: 120px;
+      width: 110px;
     }
+
+    .toggle-icon {
+      display: inline-block;
+      margin-right: 8px;
+      font-size: 12px;
+      transition: transform 0.2s ease;
+      color: var(--primary);
+    }
+
+    .player-row.expanded .toggle-icon {
+      transform: rotate(90deg);
+    }
+
+    /* Expandable Breakdown Drawer */
+    .details-row {
+      display: none;
+      background-color: #fcfcfd;
+    }
+
+    .details-row.open {
+      display: table-row;
+    }
+
+    .breakdown-container {
+      padding: 15px 20px;
+      border-bottom: 2px solid var(--primary);
+    }
+
+    .breakdown-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .breakdown-table th {
+      background-color: #e2e8f0;
+      color: #333;
+      padding: 6px 10px;
+    }
+
+    .breakdown-table td {
+      padding: 6px 10px;
+      border-bottom: 1px solid #edf2f7;
+    }
+
+    .breakdown-table tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    .pts-badge {
+      font-weight: bold;
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .pts-zero { background: #e6fffa; color: #234e52; }
+    .pts-low { background: #feefc3; color: #744210; }
+    .pts-high { background: #fed7d7; color: #9b2c2c; }
 
     .loading {
       text-align: center;
@@ -126,20 +185,18 @@
   <div class="container">
     <header>
       <h1>EPL Prediction League Standings</h1>
-      <p class="subtitle">Live League Leaderboard</p>
+      <p class="subtitle">Click any player to view their full 20-team prediction breakdown</p>
     </header>
 
     <div class="rules-card">
       <h3>Scoring & Tie-Breaker Info</h3>
       <ul>
-        <li><strong>Golf-Style Scoring:</strong> The lowest total score wins! Points represent how far off a prediction is for each team. For example, predicting a team to finish 2nd when they actually finish 7th results in 5 penalty points. Perfect predictions earn 0 points.</li>
-        <li><strong>Sequential Tie-Breakers:</strong> If two or more players end up tied on total points, ties are broken automatically behind the scenes:
-          <br>&bull; The player with the more accurate 1st place prediction takes the higher position.
-          <br>&bull; If those are identical, the system compares 2nd place prediction accuracy, then 3rd place, sequentially down through 20th place.</li>
+        <li><strong>Golf-Style Scoring:</strong> Lowest total score wins! Points represent how far off a prediction is for each team. Spot-on predictions earn 0 points.</li>
+        <li><strong>Tie-Breakers:</strong> Broken automatically by sequential pick accuracy (1st place pick accuracy, then 2nd place, down through 20th place).</li>
       </ul>
     </div>
 
-    <table id="standings-table">
+    <table class="standings-table">
       <thead>
         <tr>
           <th class="rank-col">Rank</th>
@@ -169,18 +226,68 @@
           return;
         }
 
-        tbody.innerHTML = data.map(player => `
-          <tr>
-            <td class="rank-col">${player.rank}</td>
-            <td>${escapeHtml(player.name)}</td>
-            <td class="points-col">${player.points}</td>
-          </tr>
-        `).join('');
+        tbody.innerHTML = data.map((player, idx) => {
+          const rowId = `details-${idx}`;
+          
+          let breakdownRows = '';
+          if (player.breakdown && player.breakdown.length > 0) {
+            breakdownRows = player.breakdown.map(b => {
+              let ptsClass = 'pts-low';
+              if (b.points === 0) ptsClass = 'pts-zero';
+              else if (b.points >= 5) ptsClass = 'pts-high';
+
+              return `
+                <tr>
+                  <td style="text-align:center;">${b.predictedRank}</td>
+                  <td><strong>${escapeHtml(b.teamName)}</strong></td>
+                  <td style="text-align:center;">${b.actualRank}</td>
+                  <td style="text-align:right;"><span class="pts-badge ${ptsClass}">+${b.points}</span></td>
+                </tr>
+              `;
+            }).join('');
+          } else {
+            breakdownRows = '<tr><td colspan="4" style="text-align:center;">No breakdown details available.</td></tr>';
+          }
+
+          return `
+            <tr class="player-row" onclick="toggleDetails('${rowId}', this)">
+              <td class="rank-col">${player.rank}</td>
+              <td><span class="toggle-icon">&#9654;</span>${escapeHtml(player.name)}</td>
+              <td class="points-col">${player.points} pts</td>
+            </tr>
+            <tr id="${rowId}" class="details-row">
+              <td colspan="3">
+                <div class="breakdown-container">
+                  <table class="breakdown-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 50px; text-align:center;">Pick</th>
+                        <th>Predicted Team</th>
+                        <th style="width: 80px; text-align:center;">Live Pos</th>
+                        <th style="width: 70px; text-align:right;">Points</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${breakdownRows}
+                    </tbody>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
 
       } catch (err) {
         console.error("Error fetching standings:", err);
         tbody.innerHTML = '<tr><td colspan="3" class="loading">Unable to load standings. Please try again later.</td></tr>';
       }
+    }
+
+    function toggleDetails(rowId, playerRow) {
+      const detailRow = document.getElementById(rowId);
+      
+      detailRow.classList.toggle('open');
+      playerRow.classList.toggle('expanded');
     }
 
     function escapeHtml(str) {
@@ -191,7 +298,6 @@
         .replace(/"/g, "&quot;");
     }
 
-    // Initial Load
     fetchStandings();
   </script>
 </body>
