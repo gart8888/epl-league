@@ -93,8 +93,8 @@
     }
 
     .rules-card li {
-      margin-bottom: 6px;
-      line-height: 1.4;
+      margin-bottom: 10px;
+      line-height: 1.5;
     }
 
     /* Team Drag & Drop List */
@@ -199,9 +199,11 @@
     <div class="rules-card">
       <h3>Rules & Scoring</h3>
       <ul>
-        <li><strong>Goal:</strong> Rank all 20 Premier League teams from 1st to 20th position.</li>
-        <li><strong>Scoring (Golf Rules):</strong> Lowest total points wins. Points equal absolute rank difference ($|predicted - actual|$).</li>
-        <li><strong>Tie-Breaking Logic:</strong> If points are tied, ties are broken behind the scenes by evaluating errors choice-by-choice (1st pick error, then 2nd pick error, down through 20th pick).</li>
+        <li><strong>Goal:</strong> Drag and drop the 20 Premier League teams into the exact order you think they will finish at the end of the season.</li>
+        <li><strong>Golf-Style Scoring:</strong> Just like golf, the lowest total score wins! You earn points based on how far off your prediction is for every team. For example, if you predict a team to finish 2nd, but they actually end up finishing 7th, you receive 5 penalty points for that pick. Spot-on predictions earn 0 points.</li>
+        <li><strong>Sequential Tie-Breakers:</strong> If two or more players end up tied on total points, the system automatically breaks the tie by looking at individual picks in order:
+          <br>&bull; The player with the more accurate 1st place prediction gets the higher rank.
+          <br>&bull; If those are identical, it compares accuracy on 2nd place predictions, then 3rd place, and so on all the way down through 20th place.</li>
       </ul>
     </div>
 
@@ -232,10 +234,26 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxXPa3hnjxvnGREK_7mTZfjtC5brUFSFhKKAumzj5L0BY79Pkjt4TcyXQF1maNScIipug/exec";
 
     const DEFAULT_TEAMS = [
-      "Arsenal", "Aston Villa", "Bournemouth", "Brentford", "Brighton & Hove Albion",
-      "Chelsea", "Crystal Palace", "Everton", "Fulham", "Ipswich Town",
-      "Leicester City", "Liverpool", "Manchester City", "Manchester United", "Newcastle United",
-      "Nottingham Forest", "Southampton", "Tottenham Hotspur", "West Ham United", "Wolverhampton Wanderers"
+      "AFC Bournemouth",
+      "Arsenal FC",
+      "Aston Villa FC",
+      "Brentford FC",
+      "Brighton & Hove Albion FC",
+      "Chelsea FC",
+      "Coventry City FC",
+      "Crystal Palace FC",
+      "Everton FC",
+      "Fulham FC",
+      "Hull City AFC",
+      "Ipswich Town FC",
+      "Leeds United FC",
+      "Liverpool FC",
+      "Manchester City FC",
+      "Manchester United FC",
+      "Newcastle United FC",
+      "Nottingham Forest FC",
+      "Sunderland AFC",
+      "Tottenham Hotspur FC"
     ];
 
     const teamListEl = document.getElementById('team-list');
