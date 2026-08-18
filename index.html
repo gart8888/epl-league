@@ -46,6 +46,43 @@
       margin-bottom: 20px;
     }
 
+    /* Rules & Scoring Accordion */
+    .scoring-box {
+      background: #f8f0fc;
+      border: 1px solid #e1bee7;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .scoring-header {
+      background: var(--primary);
+      color: #ffffff;
+      padding: 12px 15px;
+      font-weight: bold;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .scoring-content {
+      padding: 15px;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: #333;
+    }
+
+    .scoring-content ul {
+      margin: 8px 0 0 0;
+      padding-left: 20px;
+    }
+
+    .scoring-content li {
+      margin-bottom: 6px;
+    }
+
     .form-group {
       margin-bottom: 15px;
     }
@@ -119,7 +156,7 @@
       flex-shrink: 0;
     }
 
-    button {
+    button[type="submit"] {
       width: 100%;
       background-color: var(--primary);
       color: white;
@@ -132,11 +169,11 @@
       transition: background-color 0.2s;
     }
 
-    button:hover {
+    button[type="submit"]:hover {
       background-color: #520058;
     }
 
-    button:disabled {
+    button[type="submit"]:disabled {
       background-color: #ccc;
       cursor: not-allowed;
     }
@@ -159,6 +196,22 @@
   <div class="container">
     <h1>EPL Predictions</h1>
     <p class="subtitle">Drag & drop teams to rank them 1 to 20</p>
+
+    <!-- Scoring Rules Panel -->
+    <details class="scoring-box" open>
+      <summary class="scoring-header">
+        <span>⚽ How Scoring Works</span>
+      </summary>
+      <div class="scoring-content">
+        <p style="margin-top:0;"><strong>Goal:</strong> Get the <em>lowest score possible</em> (Golf rules!).</p>
+        <ul>
+          <li><strong>Position Difference:</strong> For each team, your score increases by the absolute difference between where you predicted them to finish and where they currently sit in the live Premier League table.</li>
+          <li><em>Example:</em> If you predict Arsenal to finish <strong>1st</strong> and they are currently <strong>3rd</strong>, you receive <strong>|1 - 3| = 2 points</strong> for that team.</li>
+          <li><strong>Total Score:</strong> The sum of error points across all 20 teams. A perfect prediction across the entire table earns 0 points!</li>
+          <li><strong>Tiebreaker:</strong> If two players have identical total points, the player whose <strong>1st Place (Champion) pick</strong> is closest to their actual live table position wins the tiebreaker.</li>
+        </ul>
+      </div>
+    </details>
 
     <div id="cutoffBanner">
       🔒 Submissions are officially closed for the season!
@@ -186,6 +239,11 @@
   </div>
 
   <script>
+    // Configuration Variables
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxXPa3hnjxvnGREK_7mTZfjtC5brUFSFhKKAumzj5L0BY79Pkjt4TcyXQF1maNScIipug/exec";
+    const LEAGUE_PASSWORD = "EPL2026";
+    const KICKOFF_TIME = new Date("2026-08-15T11:30:00Z");
+
     // 1. Exact 20 Premier League Teams
     const defaultTeams = [
       "AFC Bournemouth",
@@ -209,9 +267,6 @@
       "Sunderland AFC",
       "Tottenham Hotspur FC"
     ];
-
-    // Kickoff Cutoff Enforcement (UTC format)
-    const KICKOFF_TIME = new Date("2026-08-22T11:30:00Z");
 
     // Initialize list and drag events
     document.addEventListener("DOMContentLoaded", () => {
@@ -312,13 +367,11 @@
         return;
       }
 
-      // Replace with your actual league password
-      if (password !== "EPL2026") {
+      if (password !== LEAGUE_PASSWORD) {
         alert("Incorrect league password!");
         return;
       }
 
-      // Collect team order from list
       const teamElements = document.querySelectorAll("#teamList .team-name");
       const predictions = Array.from(teamElements).map(el => el.innerText.trim());
 
@@ -330,11 +383,8 @@
       submitBtn.disabled = true;
       submitBtn.innerText = "Submitting...";
 
-      // Replace with your Web App URL from Apps Script
-      const scriptURL = "https://script.google.com/macros/s/AKfycbxXPa3hnjxvnGREK_7mTZfjtC5brUFSFhKKAumzj5L0BY79Pkjt4TcyXQF1maNScIipug/exec";
-
       try {
-        await fetch(scriptURL, {
+        await fetch(SCRIPT_URL, {
           method: "POST",
           mode: "no-cors",
           headers: { "Content-Type": "text/plain" },
